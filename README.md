@@ -29,7 +29,23 @@ performance of LSM tree-based storage engines.
 
 # Running Endure
 
+To begin interacting with the repository we require a couple of setup items.
+
+1. Create a `build` directory and `data` directory
+
+2. Set up cmake with `cmake -S . -B build`
+
+3. Build rocksdb with `cmake --build build`
 
 In this code package we provide a couple different ways to explore Endure.
 
-1. in `tools/robust-lsm-trees` we provide Python scripts that we utilize for
+- In the folder `endure` we provide the Python pipeline used to create tunings
+    and compare them from a model perspective. Please allow yourself to configure
+    any field listed in `endure/config/robust-lsm-trees.yaml`. Then running
+    `endure/sh/run_app.sh` will allow you to view endure creating tunings and
+    sampling the benchmark set. Certain experiments will provide the same
+    results as seen in the paper.
+
+- To simply run random tunings and play around with the RocksDB interface take
+    a look at `build/db_runner` and `build/db_builder` (assuming compilation
+    works)

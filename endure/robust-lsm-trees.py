@@ -3,6 +3,7 @@ This class implements the driver program for the robust-lsm-trees
 project
 """
 
+import os
 import logging
 import sys
 import yaml
@@ -71,7 +72,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         config_yaml_path = sys.argv[1]
     else:
-        config_yaml_path = "config/robust-lsm-trees.yaml"
+        dirname = os.path.dirname(__file__)
+        config_yaml_path = os.path.join(dirname, 'config/robust-lsm-trees.yaml')
 
     with open(config_yaml_path) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
