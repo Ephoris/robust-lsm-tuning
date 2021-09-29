@@ -24,8 +24,8 @@ class Experiment03(object):
         self.de = DataExporter(config)
 
     def run(self):
-        num_queries = 10000
-        sample_wls = self.dp.read_csv('experiment_03_wls.csv')
+        num_queries = 100000
+        sample_wls = self.dp.read_csv('experiment_02_wls.csv')
 
         grouped_wls = sample_wls.groupby(['w', 'robust_rho'])
         df = []

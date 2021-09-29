@@ -3,20 +3,20 @@ app:
     app_logging_level: "DEBUG"
 
     ROOT_DIR: "endure"
-    DATA_DIR: "data"
+    DATA_DIR: "/scratchNVM0/ndhuynh/data"
 
-    BUILDER_PATH: "../../../build/db_builder"
-    EXECUTION_PATH: "../../../build/db_runner"
-    DATABASE_PATH: "/tmp"
+    BUILDER_PATH: "../build/db_builder"
+    EXECUTION_PATH: "../build/db_runner"
+    DATABASE_PATH: "/scratchNVM0/ndhuynh/tmp"
 
 lsm_tree_config: 
-    N: 10000000     # 1e7 items
+    N: 100000000
     phi: 1          
     s: 0.00         # Average range query selectivity
     B: 4            # Number of entries that fit in a disk page
     E: 8192         # Size of data entries in bits
     M: 100000000    # Total memory budget of ~ 10GB (10 bits per N)
-    is_leveling_policy: False  # Leveling or Tiering policy
+    is_leveling_policy: True  # Leveling or Tiering policy
 
 expected_workloads:
     - z0: 0.25    # Empty point query percentage  
@@ -106,15 +106,16 @@ uncertain_workload_config:
 
 jobs:
     job_list:
-        - "create_workload_uncertainty_tunings"
-        - "sample_uncertain_workloads"
-        # - "run_experiments"
+        # - "create_workload_uncertainty_tunings"
+        # - "sample_uncertain_workloads"
+        - "run_experiments"
 
 experiments:
     expt_list:
         # - "experiment_01"
         # - "experiment_02"
         # - "experiment_03"
+        - "experiment_04"
 
 experiment_01:
 

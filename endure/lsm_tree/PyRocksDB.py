@@ -73,7 +73,7 @@ class RocksDB(object):
 
         return l
 
-    def init_database(self, db_name, path_db, h, T, N, E, M, is_leveling_policy=True, destroy=True, bulk_stop_early=False):
+    def init_database(self, db_name, path_db, h, T, N, E, M, is_leveling_policy=True, destroy=True, bulk_stop_early=False, **kwargs):
         """[summary]
 
         :param db_name: database name
@@ -202,9 +202,10 @@ class RocksDB(object):
         results = {}
 
         try:
-            timeout = 10 * 60
+            timeout = 10 * 60 * 60
             proc_results, _ = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
+            self.logger.warn('Timeout limit reached. Aborting')
             proc.kill()
             results['l0_hit'] = 0 
             results['l1_hit'] = 0 
@@ -256,6 +257,6 @@ class RocksDB(object):
 
         results['blocks_read'] = block_read_result[0]
 
-        results['runs_per_level'] = runs_per_level
+        results['runs_per_level'] = runs_per_level.strip()
 
         return results 

@@ -24,7 +24,7 @@ class Experiment02(object):
         self.de = DataExporter(config)
 
     def run(self):
-        num_queries = 10000
+        num_queries = 100000
         sample_wls = self.dp.read_csv('experiment_02_wls.csv')
 
         grouped_wls = sample_wls.groupby(['w', 'robust_rho'])
@@ -55,7 +55,7 @@ class Experiment02(object):
                     w = int(np.ceil(num_queries * row['w_s']))
 
                     self.logger.info(
-                        f'Workload ({idx + 1} / {group.shape[0]}) :  '
+                        f'Workload ({idx + 1} / {group.shape[0]}) : '
                         f'(z0: {z0}, z1: {z1}, q: {q}, w: {w}) on {mode.upper()}')
 
                     results = db.run(z0, z1, q, w, prime=10000)

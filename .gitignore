@@ -31,4 +31,25 @@
 *.out
 *.app
 
+# Build files
+build
+
+# Editor settings
+.vscode
+.cache
+
+# Logs folder
+logs
+
+# MacOS Files
+.DS_Store
+
+# Python Script Cache
 __pycache__
+.ipynb_checkpoints
+
+# Ignore data directory
+data
+
+# Ignore data files
+*.csv
