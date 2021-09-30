@@ -172,6 +172,16 @@ public:
      */
     static size_t estimate_levels(size_t N, double T, size_t E, size_t B);
 
+
+    /**
+     * @brief Calculates the nubmer of elements assuming a tree with the 
+     *        respective parameters is full.
+     * 
+     * @param T size ratio
+     * @param E entry size
+     * @param B buffer size
+     * @param L number of levels
+     */
     static size_t calculate_full_tree(double T, size_t E, size_t B, size_t L);
 };
 

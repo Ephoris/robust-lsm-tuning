@@ -33,6 +33,15 @@ rocksdb::Status FluidLSMBulkLoader::bulk_load_entries(rocksdb::DB *db, size_t nu
         spdlog::debug("Entries per level : [{}]", capacity_str);
     }
 
+    size_t full_num_entries = tmpdb::FluidLSMCompactor::calculate_full_tree(T,
+        E, B, estimated_levels);
+    
+    double percent_full = num_entries / full_num_entries;
+    for (size_t level_idx = 0; level_idx < estimated_levels; level_idx++)
+    {
+        capacity_per_level[level_idx] = capacity_per_level[level_idx] * percent_full;
+    }
+
     status = this->bulk_load(db, capacity_per_level, estimated_levels, num_entries);
 
     return status;
