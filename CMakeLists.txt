@@ -143,5 +143,8 @@ target_link_libraries(db_builder tmpdb tools)
 add_executable(db_runner ${CMAKE_SOURCE_DIR}/tools/db_runner.cpp)
 target_link_libraries(db_runner tmpdb tools)
 
+add_executable(db_cont_runner ${CMAKE_SOURCE_DIR}/tools/db_cont_runner.cpp)
+target_link_libraries(db_cont_runner tmpdb tools)
+
 # add_executable(compact_files_example ${CMAKE_SOURCE_DIR}/example/compact_files_example.cc)
 # target_link_libraries(compact_files_example tmpdb)
