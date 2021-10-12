@@ -71,7 +71,8 @@ class Experiment01(object):
        ]
 
         # Expected memory bits per element list
-        expected_memory_bits_per_element = [10, 15, 20]
+        # expected_memory_bits_per_element = [10, 15, 20]
+        expected_memory_bits_per_element = [10]
 
         # Sample size
         sample_size = 10000
@@ -84,7 +85,7 @@ class Experiment01(object):
         config['uncertain_workload_config']['rho_high'] = 4
         config['uncertain_workload_config']['rho_step'] = 0.25
         config['uncertain_workload_config']['N'] = sample_size
-        config['lsm_tree_config']['N'] = 1e7
+        config['lsm_tree_config']['N'] = 1e8
 
         # Sample uncertain workloads object
         suw = SampleUncertainWorkloads(config)

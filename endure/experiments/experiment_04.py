@@ -38,7 +38,7 @@ class Experiment04(object):
         num_entries = (1e5, 3e5, 6e5, 1e6, 3e6, 6e6, 1e7, 3e7, 6e7, 1e8, 2e8)
 
         bpe_budget = 10
-        buffer = 1 * 1024 * 1024 * 8 # 1 MiB in bits
+        buffer = 8 * 1024 * 1024 * 8 # MiB in bits
         size_ratio = 8
 
         df = []
@@ -47,11 +47,11 @@ class Experiment04(object):
             row, settings = self.config['lsm_tree_config'].copy(), self.config['lsm_tree_config'].copy()
             settings['db_name'] = 'exp04_db'
             settings['path_db'] = self.config['app']['DATABASE_PATH']
-            settings['T'] = row['T'] = 10
+            settings['T'] = row['T'] = size_ratio
             settings['N'] = row['N'] = n
             settings['M'] = row['M'] = buffer + (bpe_budget * n) 
             settings['h'] = row['h'] = bpe_budget
-            settings['is_leveling_policy'] = False
+            settings['is_leveling_policy'] = True
 
             cf = CostFunction(
                 settings['N'],
@@ -64,7 +64,7 @@ class Experiment04(object):
                 z0, z1, q, w)
 
             db = RocksDB(self.config)
-            _ = db.init_database(**settings, bulk_stop_early=True)
+            _ = db.init_database(**settings, bulk_stop_early=False)
 
             self.logger.info('Running workload')
             results = db.run(z0, z1, q, w, prime=10000)

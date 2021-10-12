@@ -5,7 +5,6 @@ import numpy as np
 from numba.experimental import jitclass
 from numba import int32, float32, boolean, float64, int64
 
-
 spec = [
     ('N', float64),
     ('phi', float64),
@@ -114,11 +113,6 @@ class CostFunction:
 
         if not self.is_leveling_policy:
             z0 *= (T - 1)
-        # z0 = np.exp(-h * np.log(2)**2)
-        # if self.is_leveling_policy:
-        #     z0 *= (T ** (T / (T - 1))) / (T - 1)
-        # else:
-        #     z0 *= (T ** (T / (T - 1)))
 
         return z0
 
@@ -198,8 +192,6 @@ class CostFunction:
 
         if is_leveling_policy is not None:
             self.is_leveling_policy = is_leveling_policy
-        if B is not None:
-            self.B = B
         if E is not None:
             self.E = E
 

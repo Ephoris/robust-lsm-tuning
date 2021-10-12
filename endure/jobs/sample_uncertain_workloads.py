@@ -37,7 +37,9 @@ class SampleUncertainWorkloads(object):
 
         samples = []
 
-        self.logger.info(f'Sampling workloads {[op for op, mask in list(zip(["z0", "z1", "q", "w"], ops)) if mask]}')
+        self.logger.info(
+            f'Sampling workloads '
+            f'{[op for op, mask in list(zip(["z0", "z1", "q", "w"], ops)) if mask]}')
 
         # Number of workloads in the sample outside uncertainty region
         for _ in range(num_samples):
