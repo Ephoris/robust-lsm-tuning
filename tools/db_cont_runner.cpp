@@ -453,20 +453,6 @@ int main(int argc, char * argv[])
     // }
 
     spdlog::info("Welcome to the db_cont_runner!");
-    if(env.verbose == 1)
-    {
-        spdlog::info("Log level: DEBUG");
-        spdlog::set_level(spdlog::level::debug);
-    }
-    else if(env.verbose == 2)
-    {
-        spdlog::info("Log level: TRACE");
-        spdlog::set_level(spdlog::level::trace);
-    }
-    else
-    {
-        spdlog::set_level(spdlog::level::info);
-    }
 
     // rocksdb::DB * db = nullptr;
     // tmpdb::FluidOptions * fluid_opt = nullptr;

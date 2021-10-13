@@ -65,3 +65,45 @@ std::string RandomGenerator::generate_val(size_t value_size, const std::string v
 
     return value;
 }
+
+
+KeyFileGenerator::KeyFileGenerator(std::string key_file, int num_keys, int seed)
+{
+    this->engine.seed(seed);
+    spdlog::debug("Reading {}", key_file);
+    std::ifstream fid(key_file, std::ios::in);
+    if (!fid)
+    {
+        spdlog::warn("Error opening key file {}", key_file);
+    }
+
+    std::string k;
+    int keys_loaded = 0;
+    spdlog::debug("Loading in keys");
+    while ((std::getline(fid, k)) && (keys_loaded < num_keys))
+    {
+        std::cout << k << ", ";
+        this->keys.push_back(k);
+        keys_loaded++;
+    }
+ 
+    this->key_gen = this->keys.begin();
+    fid.close();
+}
+
+std::string KeyFileGenerator::generate_key(const std::string key_prefix)
+{
+    std::string key = key_prefix + *this->key_gen;
+    this->key_gen++;
+    spdlog::info("Adding {} to DB", key);
+
+    return key;
+}
+
+std::string KeyFileGenerator::generate_val(size_t value_size, const std::string value_prefix)
+{
+    unsigned long random_size = value_size - value_prefix.size();
+    std::string value = value_prefix + std::string(random_size, 'a');
+
+    return value;
+} 

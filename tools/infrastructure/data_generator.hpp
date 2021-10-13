@@ -1,11 +1,12 @@
 #ifndef DATA_GENERATOR_H_
 #define DATA_GENERATOR_H_
 
-#include <ctime>
 #include <cassert>
-#include <string>
 #include <ctime>
+#include <fstream>
+#include <iostream>
 #include <random>
+#include <string>
 #include <vector>
 
 #include "spdlog/spdlog.h"
@@ -51,6 +52,22 @@ private:
     std::uniform_int_distribution<int> dist_left;
     std::uniform_int_distribution<int> dist_right;
     std::mt19937 engine;
+};
+
+
+class KeyFileGenerator : public DataGenerator
+{
+public:
+    KeyFileGenerator(std::string key_file, int num_keys, int seed);
+
+    std::string generate_key(const std::string key_prefix);
+
+    std::string generate_val(size_t value_size, const std::string value_prefix);
+
+private:
+    std::mt19937 engine;
+    std::vector<std::string>::iterator key_gen;
+    std::vector<std::string> keys;
 };
 
 

@@ -40,6 +40,9 @@ typedef struct environment
 
     bool early_fill_stop = false;
 
+    std::string key_file;
+    bool use_key_file = false;
+
 } environment;
 
 
@@ -95,7 +98,9 @@ environment parse_args(int argc, char * argv[])
             (option("--seed") & integer("num", env.seed))
                 % "seed for generating data [default: random from time]",
             (option("--early_fill_stop").set(env.early_fill_stop, true))
-                % "Stops bulk loading early if N is met [default: False]"
+                % "Stops bulk loading early if N is met [default: False]",
+            (option("--key_file").set(env.use_key_file, true) & value("file", env.key_file))
+                % "use keyfile to speed up bulk loading"
         )
     );
 
@@ -201,8 +206,16 @@ void build_db(environment & env)
     rocksdb_opt.target_file_size_base = UINT64_MAX;
 
     fill_fluid_opt(env, fluid_opt);
-    RandomGenerator gen(env.seed);
-    FluidLSMBulkLoader *fluid_compactor = new FluidLSMBulkLoader(gen, fluid_opt, rocksdb_opt, env.early_fill_stop);
+    DataGenerator *gen;
+    if (env.use_key_file)
+    {
+        gen = new KeyFileGenerator(env.key_file, 2 * env.N, env.seed) ;
+    }
+    else
+    {
+        gen = new RandomGenerator(env.seed);
+    }
+    FluidLSMBulkLoader *fluid_compactor = new FluidLSMBulkLoader(*gen, fluid_opt, rocksdb_opt, env.early_fill_stop);
     rocksdb_opt.listeners.emplace_back(fluid_compactor);
 
     rocksdb::BlockBasedTableOptions table_options;

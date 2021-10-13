@@ -57,16 +57,16 @@ int main(int argc, char * argv[])
     std::shuffle(vec.begin(), vec.end(), gen);
 
     spdlog::info("Writing keys to {}", env.key_file);
-    std::ofstream fid(env.key_file, std::ios::out | std::ios::binary);
+    std::ofstream fid(env.key_file, std::ios::out);
     if (!fid)
     {
         spdlog::warn("Cannot create file");
         return 1;
     }
 
-    for (int key : vec)
+    for (auto key : vec)
     {
-        fid.write((char *) &key, sizeof(int));
+        fid << key << std::endl;
     }
     fid.close();
 
