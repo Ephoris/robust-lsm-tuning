@@ -10,7 +10,7 @@
 
 #include "spdlog/spdlog.h"
 
-#define KEY_DOMAIN 10000000
+#define KEY_DOMAIN 1000000000
 #define KEY_MIDDLE_RIGHT 5600000
 #define KEY_MIDDLE_LEFT 4600000
 #define KEY_BOTTOM 0

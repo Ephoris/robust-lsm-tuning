@@ -20,12 +20,14 @@
 #include "infrastructure/data_generator.hpp"
 
 #define PAGESIZE 4096
+#define NUM_OPS 4
 
 typedef struct environment
 {
     std::string db_path;
 
-    std::vector<int> workloads;
+    std::vector<int> workloads_input;
+    std::vector<std::vector<int>> workloads;
     size_t prime_reads = 0;
     size_t num_sessions = 0;
 
@@ -63,7 +65,7 @@ environment parse_args(int argc, char * argv[])
         (value("db_path", env.db_path)) % "path to the db",
         (option("-s", "--sessions") & integer("num", env.num_sessions))
             % ("number of sessions, [default: " + to_string(env.num_sessions) + "]"),
-        (option("-w", "--writes") & values("num", env.workloads))
+        (option("-w", "--writes") & values("num", env.workloads_input))
             % ("workloads"),
         (option("-o", "--output").set(env.write_out) & value("file", env.write_out_path))
             % ("optional write out all recorded times [default: off]"),
@@ -91,6 +93,18 @@ environment parse_args(int argc, char * argv[])
         auto fmt = doc_formatting{}.doc_column(42);
         std::cout << make_man_page(cli, "exp_robust", fmt);
         exit(EXIT_FAILURE);
+    }
+
+    // Workload parsing
+    std::vector<int> wl;
+    for (std::size_t idx = 0; idx < env.workloads_input.size(); idx++)
+    {
+        wl.push_back(env.workloads_input[idx]);
+        if ((idx + 1) % NUM_OPS == 0)
+        {
+            env.workloads.push_back(wl);
+            wl.clear();
+        }
     }
 
     return env;
@@ -421,28 +435,38 @@ int main(int argc, char * argv[])
     spdlog::set_pattern("[%T.%e]%^[%l]%$ %v");
     environment env = parse_args(argc, argv);
     
-    printf("workloads = [");
-    for (auto item : env.workloads)
-    {
-        printf("%d, ", item);
-    }
-    printf("]\n");
+    // for (auto & row : env.workloads)
+    // {
+    //     printf("[");
+    //     for (auto & item : row)
+    //     {
+    //         if (&item == &row.back())
+    //         {
+    //             printf("%d", item);
+    //         }
+    //         else
+    //         {
+    //             printf("%d, ", item);
+    //         }
+    //     }
+    //     printf("]\n");
+    // }
 
-    // spdlog::info("Welcome to the db_cont_runner!");
-    // if(env.verbose == 1)
-    // {
-    //     spdlog::info("Log level: DEBUG");
-    //     spdlog::set_level(spdlog::level::debug);
-    // }
-    // else if(env.verbose == 2)
-    // {
-    //     spdlog::info("Log level: TRACE");
-    //     spdlog::set_level(spdlog::level::trace);
-    // }
-    // else
-    // {
-    //     spdlog::set_level(spdlog::level::info);
-    // }
+    spdlog::info("Welcome to the db_cont_runner!");
+    if(env.verbose == 1)
+    {
+        spdlog::info("Log level: DEBUG");
+        spdlog::set_level(spdlog::level::debug);
+    }
+    else if(env.verbose == 2)
+    {
+        spdlog::info("Log level: TRACE");
+        spdlog::set_level(spdlog::level::trace);
+    }
+    else
+    {
+        spdlog::set_level(spdlog::level::info);
+    }
 
     // rocksdb::DB * db = nullptr;
     // tmpdb::FluidOptions * fluid_opt = nullptr;
