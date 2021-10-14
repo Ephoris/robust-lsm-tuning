@@ -120,6 +120,7 @@ class RocksDB(object):
             '-b {:.2f}'.format(self.h),
             '-N {}'.format(self.N),
             '--parallelism {}'.format(8),
+            '--key-file {}'.format(self.config['app']['KEY_FILE_PATH'])
         ]
         if bulk_stop_early:
             cmd += ['--early_fill_stop']
@@ -187,6 +188,7 @@ class RocksDB(object):
             f'-w {num_w}',
             f'-p {prime}',
             '--parallelism {}'.format(THREADS),
+            '--key-file {}'.format(self.config['app']['KEY_FILE_PATH'])
         ]
         cmd = ' '.join(cmd)
         self.logger.debug(f'{cmd}')

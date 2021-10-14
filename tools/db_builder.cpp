@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <ctime>
+#include <filesystem>
 #include <unistd.h>
 
 #include "clipp.h"
@@ -99,7 +100,7 @@ environment parse_args(int argc, char * argv[])
                 % "seed for generating data [default: random from time]",
             (option("--early_fill_stop").set(env.early_fill_stop, true))
                 % "Stops bulk loading early if N is met [default: False]",
-            (option("--key_file").set(env.use_key_file, true) & value("file", env.key_file))
+            (option("--key-file").set(env.use_key_file, true) & value("file", env.key_file))
                 % "use keyfile to speed up bulk loading"
         )
     );
@@ -159,12 +160,14 @@ void fill_fluid_opt(environment env, tmpdb::FluidOptions &fluid_opt)
     if (fluid_opt.bulk_load_opt == tmpdb::bulk_load_type::ENTRIES)
     {
         fluid_opt.num_entries = env.N;
-        fluid_opt.levels = tmpdb::FluidLSMCompactor::estimate_levels(env.N, env.T, env.E, env.B);
+        fluid_opt.levels = tmpdb::FluidLSMCompactor::estimate_levels(
+            env.N, env.T, env.E, env.B);
     }
     else
     {
         fluid_opt.levels = env.L;
-        // TODO: Calculate N based on levels
+        fluid_opt.num_entries = tmpdb::FluidLSMCompactor::calculate_full_tree(
+            env.T, env.E, env.B, env.L);
     }
     fluid_opt.file_size_policy_opt = env.file_size_policy_opt;
     fluid_opt.fixed_file_size = env.fixed_file_size;
@@ -327,5 +330,11 @@ int main(int argc, char * argv[])
 
     build_db(env);
 
+    // if (env.use_key_file)
+    // {
+    //     spdlog::info("Copying key file to DB path");
+    //     std::string cmd = std::string("cp '") + env.key_file + "' '" + env.db_path + "/keys.data'";
+    //     system(cmd.c_str());
+    // }
     return EXIT_SUCCESS;
 }

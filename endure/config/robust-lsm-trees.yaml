@@ -8,6 +8,7 @@ app:
     BUILDER_PATH: "../build/db_builder"
     EXECUTION_PATH: "../build/db_runner"
     DATABASE_PATH: "/scratchNVM0/ndhuynh/tmp"
+    KEY_FILE_PATH: "/scratchNVM0/ndhuynh/data/keys.data"
 
 lsm_tree_config: 
     N: 100000000

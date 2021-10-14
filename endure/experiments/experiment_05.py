@@ -141,7 +141,7 @@ class Experiment05(object):
         ]
         wl_idxs = [7, 11, 16]
         wl_rhos = [0.25, 0.25, 0.5]
-        op_mask = (True, True, True, True)
+        op_mask = (True, True, True, False)
         bpe = 10
         buffer_min = 1 * 1024 * 1024 * 8 # 1 MiB in bits
 
@@ -176,7 +176,8 @@ class Experiment05(object):
             for idx, wl in sessions.iterrows():
                 row = deepcopy(design)
                 row['sample_idx'] = wl['sample_idx']
-                row['num_queries'] = (design['N'] * 0.1)
+                # row['num_queries'] = (design['N'] * 0.1)
+                row['num_queries'] = 100000 
                 row['z0_s'] = wl['z0_s']
                 row['z1_s'] = wl['z1_s']
                 row['q_s'] = wl['q_s']

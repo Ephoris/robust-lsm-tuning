@@ -44,6 +44,9 @@ typedef struct environment
     int verbose = 0;
 
     bool prime_db = false;
+
+    std::string key_file;
+    bool use_key_file = false;
 } environment;
 
 
@@ -83,7 +86,9 @@ environment parse_args(int argc, char * argv[])
         (option("--compact-readahead") & integer("size", env.compaction_readahead_size))
             % ("Use 2048 for HDD, 64 for flash [default: " + to_string(env.compaction_readahead_size) + "]"),
         (option("--rand_seed") & integer("seed", env.seed))
-            % ("Random seed for experiment reproducability [default: " + to_string(env.seed) + "]")
+            % ("Random seed for experiment reproducability [default: " + to_string(env.seed) + "]"),
+        (option("--key-file").set(env.use_key_file, true) & value("file", env.key_file))
+            % "use keyfile to speed up bulk loading"
     );
 
     auto cli = (
@@ -243,19 +248,29 @@ int run_random_non_empty_reads(environment env, std::vector<std::string> existin
 }
 
 
-int run_random_empty_reads(environment env, rocksdb::DB * db)
+int run_random_empty_reads(environment env, rocksdb::DB * db, tmpdb::FluidOptions * fluid_opt)
 {
     spdlog::info("{} Empty Reads", env.empty_reads);
     rocksdb::Status status;
 
     std::string value, key;
     std::mt19937 engine;
-    std::uniform_int_distribution<int> dist(KEY_MIDDLE_LEFT + 1, KEY_MIDDLE_RIGHT - 1);
+
+    DataGenerator data_gen;
+    if (env.use_key_file)
+    {
+        data_gen = KeyFileGenerator(env.key_file, fluid_opt->num_entries, env.empty_reads, 0);
+    }
+    else
+    {
+        spdlog::warn("No keyfile, empty reads are not guaranteed");
+        data_gen = RandomGenerator();
+    }
 
     auto empty_read_start = std::chrono::high_resolution_clock::now();
     for (size_t read_count = 0; read_count < env.empty_reads; read_count++)
     {
-        status = db->Get(rocksdb::ReadOptions(), std::to_string(dist(engine)), &value);
+        status = db->Get(rocksdb::ReadOptions(), data_gen.generate_key(""), &value);
     }
     auto empty_read_end = std::chrono::high_resolution_clock::now();
     auto empty_read_duration = std::chrono::duration_cast<std::chrono::milliseconds>(empty_read_end - empty_read_start);
@@ -331,7 +346,8 @@ int run_random_inserts(environment env,
     int writes_failed = 0;
 
     spdlog::debug("Writing {} key-value pairs", env.writes);
-    RandomGenerator data_gen = RandomGenerator(env.seed);
+    KeyFileGenerator data_gen(env.key_file, fluid_opt->num_entries, env.writes, 0);
+
     auto start_write_time = std::chrono::high_resolution_clock::now();
     for (size_t write_idx = 0; write_idx < env.writes; write_idx++)
     {
@@ -376,6 +392,7 @@ int run_random_inserts(environment env,
     spdlog::info("Write time elapsed : {} ms", write_duration.count());
 
     append_valid_keys(env, new_keys);
+    fluid_opt->num_entries += new_keys.size();
 
     return write_duration.count();
 }
@@ -470,7 +487,7 @@ int main(int argc, char * argv[])
     rocksdb::get_perf_context()->Reset();
     if (env.empty_reads > 0)
     {
-        empty_read_duration = run_random_empty_reads(env, db); 
+        empty_read_duration = run_random_empty_reads(env, db, fluid_opt); 
     }
 
     if (env.non_empty_reads > 0)
@@ -526,6 +543,7 @@ int main(int argc, char * argv[])
     }
     run_per_level = run_per_level.substr(0, run_per_level.size() - 2) + "]";
     spdlog::info("runs_per_level : {}", run_per_level);
+    fluid_opt->write_config(env.db_path + "/fluid_config.json");
 
     db->Close();
     delete db;

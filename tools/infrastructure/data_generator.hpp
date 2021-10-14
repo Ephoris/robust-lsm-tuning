@@ -59,6 +59,7 @@ class KeyFileGenerator : public DataGenerator
 {
 public:
     KeyFileGenerator(std::string key_file, int num_keys, int seed);
+    KeyFileGenerator(std::string key_file, int start_idx, int num_keys, int seed);
 
     std::string generate_key(const std::string key_prefix);
 
