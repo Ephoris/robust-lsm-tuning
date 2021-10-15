@@ -256,26 +256,27 @@ int run_random_empty_reads(environment env, rocksdb::DB * db, tmpdb::FluidOption
     std::string value, key;
     std::mt19937 engine;
 
-    DataGenerator data_gen;
+    DataGenerator * data_gen;
     if (env.use_key_file)
     {
-        data_gen = KeyFileGenerator(env.key_file, fluid_opt->num_entries, env.empty_reads, 0);
+        data_gen = new KeyFileGenerator(env.key_file, fluid_opt->num_entries, env.empty_reads, 0);
     }
     else
     {
         spdlog::warn("No keyfile, empty reads are not guaranteed");
-        data_gen = RandomGenerator();
+        data_gen = new RandomGenerator();
     }
 
     auto empty_read_start = std::chrono::high_resolution_clock::now();
     for (size_t read_count = 0; read_count < env.empty_reads; read_count++)
     {
-        status = db->Get(rocksdb::ReadOptions(), data_gen.generate_key(""), &value);
+        status = db->Get(rocksdb::ReadOptions(), data_gen->generate_key(""), &value);
     }
     auto empty_read_end = std::chrono::high_resolution_clock::now();
     auto empty_read_duration = std::chrono::duration_cast<std::chrono::milliseconds>(empty_read_end - empty_read_start);
     spdlog::info("Empty read time elapsed : {} ms", empty_read_duration.count());
 
+    delete data_gen;
     return empty_read_duration.count();
 }
 
