@@ -46,7 +46,7 @@ class RocksDB(object):
         )
         self.runs_per_level_prog = re.compile(
             r'\[[0-9:.]+\]\[info\] runs_per_level : '
-            r'([0-9,\s\[\]]+)'
+            r'(\[[0-9,\s]+\])'
         )
         self.existing_keys_prog = re.compile(r'\[[0-9:.]+\]\[info\] Writing out ([0-9]+) existing keys')
 
