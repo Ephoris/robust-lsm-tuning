@@ -7,6 +7,8 @@
 #include "clipp.h"
 #include "spdlog/spdlog.h"
 
+#define MIN_CHUNK_SIZE 1024 
+
 typedef struct environment
 {
     std::string key_file;
@@ -25,8 +27,8 @@ environment parse_args(int argc, char * argv[])
     bool help = false;
 
     auto cli = "general options" % (
-        (value("key_file", env.key_file)) % "path to keyfile",
         (option("-h", "--help").set(help, true)) % "prints this message",
+        (value("key_file", env.key_file)) % "path to keyfile",
         (option("-n", "--num_keys") & integer("num", env.num_keys))
             % ("number of sessions, [default: " + to_string(env.num_keys) + "]"),
         (option("-p", "--plain").set(env.plain_text))
@@ -64,6 +66,7 @@ int main(int argc, char * argv[])
 
     if (env.plain_text)
     {
+        spdlog::info("Writing as plain text");
         fid.open(env.key_file, std::ios::out);
         for (auto key : vec)
         {
@@ -72,8 +75,19 @@ int main(int argc, char * argv[])
     }
     else
     {
+        spdlog::info("Writing as a binary file");
         fid.open(env.key_file, std::ios::out | std::ios::binary);
-        fid.write(reinterpret_cast<char *>(&vec[0]), env.num_keys * sizeof(vec[0]));
+        int size = vec.size();
+        std::vector<int>::iterator data = vec.begin();
+
+        while (size > 0)
+        {
+            int chunk = std::min(MIN_CHUNK_SIZE, size);
+            fid.write(reinterpret_cast<char *>(&data), chunk * sizeof(int));
+
+            data += chunk;
+            size -= chunk;
+        }
     }
     fid.close();
 
