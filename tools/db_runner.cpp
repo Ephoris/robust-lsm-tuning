@@ -276,7 +276,6 @@ int run_random_empty_reads(environment env, rocksdb::DB * db, tmpdb::FluidOption
     auto empty_read_duration = std::chrono::duration_cast<std::chrono::milliseconds>(empty_read_end - empty_read_start);
     spdlog::info("Empty read time elapsed : {} ms", empty_read_duration.count());
 
-    delete data_gen;
     return empty_read_duration.count();
 }
 

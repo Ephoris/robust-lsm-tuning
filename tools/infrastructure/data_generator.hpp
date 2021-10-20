@@ -67,8 +67,8 @@ public:
 
 private:
     std::mt19937 engine;
-    std::vector<std::string>::iterator key_gen;
-    std::vector<std::string> keys;
+    std::vector<int>::iterator key_gen;
+    std::vector<int> keys;
 };
 
 

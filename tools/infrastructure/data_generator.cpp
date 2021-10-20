@@ -77,45 +77,35 @@ KeyFileGenerator::KeyFileGenerator(std::string key_file, int num_keys, int seed)
         spdlog::warn("Error opening key file {}", key_file);
     }
 
-    std::string k;
-    int keys_loaded = 0;
     spdlog::debug("Loading in keys");
-    while ((std::getline(fid, k)) && (keys_loaded < num_keys))
-    {
-        this->keys.push_back(k);
-        keys_loaded++;
-    }
+    this->keys.reserve(num_keys);
+    fid.read(reinterpret_cast<char *>(&this->keys[0]), num_keys * sizeof(int));
  
     this->key_gen = this->keys.begin();
     fid.close();
 }
 
 
-KeyFileGenerator::KeyFileGenerator(std::string key_file, int start_idx, int num_keys, int seed)
+KeyFileGenerator::KeyFileGenerator(std::string key_file, int offset, int num_keys, int seed)
 {
     this->engine.seed(seed);
     spdlog::debug("Reading {}", key_file);
-    std::ifstream fid(key_file, std::ios::in);
+    std::ifstream fid(key_file, std::ios::in | std::ios::binary);
     if (!fid)
     {
         spdlog::warn("Error opening key file {}", key_file);
     }
 
-    std::string k;
-    int keys_loaded = 0;
     spdlog::debug("Loading in keys");
-    while ((std::getline(fid, k)) && (keys_loaded < start_idx))
+    if (offset > 0)
     {
-        keys_loaded++;
+        std::vector<int> tmp(offset);
+        fid.read(reinterpret_cast<char *>(&tmp[0]), offset * sizeof(int));
     }
 
-    keys_loaded = 0;
-    while ((std::getline(fid, k)) && (keys_loaded < num_keys))
-    {
-        this->keys.push_back(k);
-        keys_loaded++;
-    }
- 
+    this->keys.reserve(num_keys); 
+    fid.read(reinterpret_cast<char *>(&this->keys[0]), num_keys * sizeof(int));
+    
     this->key_gen = this->keys.begin();
     fid.close();
 }
@@ -123,7 +113,7 @@ KeyFileGenerator::KeyFileGenerator(std::string key_file, int start_idx, int num_
 
 std::string KeyFileGenerator::generate_key(const std::string key_prefix)
 {
-    std::string key = key_prefix + *this->key_gen;
+    std::string key = key_prefix + std::to_string(*this->key_gen);
     this->key_gen++;
 
     return key;

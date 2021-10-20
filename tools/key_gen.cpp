@@ -12,6 +12,7 @@ typedef struct environment
     std::string key_file;
 
     size_t num_keys = 1000000;
+    bool plain_text = false;
 } environment;
 
 
@@ -24,10 +25,12 @@ environment parse_args(int argc, char * argv[])
     bool help = false;
 
     auto cli = "general options" % (
+        (value("key_file", env.key_file)) % "path to keyfile",
         (option("-h", "--help").set(help, true)) % "prints this message",
-        (value("key_file", env.key_file)) % "path to the db",
         (option("-n", "--num_keys") & integer("num", env.num_keys))
-            % ("number of sessions, [default: " + to_string(env.num_keys) + "]")
+            % ("number of sessions, [default: " + to_string(env.num_keys) + "]"),
+        (option("-p", "--plain").set(env.plain_text))
+            % ("writes out to binary [default: " + to_string(env.plain_text) + "]")
     );
 
     if (!parse(argc, argv, cli) || help)
@@ -57,16 +60,20 @@ int main(int argc, char * argv[])
     std::shuffle(vec.begin(), vec.end(), gen);
 
     spdlog::info("Writing keys to {}", env.key_file);
-    std::ofstream fid(env.key_file, std::ios::out);
-    if (!fid)
-    {
-        spdlog::warn("Cannot create file");
-        return 1;
-    }
+    std::fstream fid;
 
-    for (auto key : vec)
+    if (env.plain_text)
     {
-        fid << key << std::endl;
+        fid.open(env.key_file, std::ios::out);
+        for (auto key : vec)
+        {
+            fid << key << std::endl;
+        }
+    }
+    else
+    {
+        fid.open(env.key_file, std::ios::out | std::ios::binary);
+        fid.write(reinterpret_cast<char *>(&vec[0]), env.num_keys * sizeof(vec[0]));
     }
     fid.close();
 
