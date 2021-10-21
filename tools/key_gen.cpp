@@ -7,7 +7,7 @@
 #include "clipp.h"
 #include "spdlog/spdlog.h"
 
-#define MIN_CHUNK_SIZE 1024 
+#define MIN_CHUNK_SIZE 1024 * 1024
 
 typedef struct environment
 {
@@ -77,19 +77,20 @@ int main(int argc, char * argv[])
     {
         spdlog::info("Writing as a binary file");
         fid.open(env.key_file, std::ios::out | std::ios::binary);
-        fid.write(reinterpret_cast<char *>(vec.data()), env.num_keys * sizeof(int));
-        // int size = vec.size();
-        // // std::vector<int>::iterator data = vec.begin();
-        // int * data = vec.data();
+        // fid.write(reinterpret_cast<char *>(vec.data()), env.num_keys * sizeof(int));
+        int size = vec.size();
+        // std::vector<int>::iterator data = vec.begin();
+        int * data = vec.data();
 
-        // while (size > 0)
-        // {
-        //     int chunk = std::min(MIN_CHUNK_SIZE, size);
-        //     fid.write(reinterpret_cast<char *>(&data), chunk * sizeof(int));
+        fid.seekp(std::ios::beg);
+        while (size > 0)
+        {
+            int chunk = std::min(MIN_CHUNK_SIZE, size);
+            fid.write(reinterpret_cast<char *>(data), chunk * sizeof(*data));
 
-        //     data += chunk;
-        //     size -= chunk;
-        // }
+            data += chunk;
+            size -= chunk;
+        }
     }
     fid.close();
 
