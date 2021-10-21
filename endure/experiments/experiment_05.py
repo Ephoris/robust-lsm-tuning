@@ -103,22 +103,22 @@ class Experiment05(object):
         session['session_id'] = 3
         sessions.append(session)
 
-        # session = df[df.w_s > 0.8].sample(samples, replace=False, random_state=0)
-        session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
+        session = df[df.w_s > 0.8].sample(samples, replace=False, random_state=0)
+        # session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
         session['session_id'] = 4
         sessions.append(session)
 
-        session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
-        # replace = len(df[df.dist < 0.2]) < samples
-        # session = df[df.dist < 0.2].sample(samples, replace=replace, random_state=0)
+        # session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
+        replace = len(df[df.dist < 0.2]) < samples
+        session = df[df.dist < 0.2].sample(samples, replace=replace, random_state=0)
         session['session_id'] = 5
         sessions.append(session)
 
         return pd.concat(sessions, ignore_index=True)
 
     def run(self):
-        db_sizes = [1e6, 2e6, 4e6, 1e7, 2e7, 4e7, 1e8, 2e8]
-        # db_sizes = [1e6, 1e7, 1e8]
+        # db_sizes = [1e6, 3e6, 1e7, 3e7, 1e8, 2e8]
+        db_sizes = [1e6, 2e6, 4e6, 1e7, 3e7]
         expected_wls = [
             {'z0': 0.25, 'z1': 0.25, 'q': 0.25, 'w': 0.25},     # 00
             {'z0': 0.97, 'z1': 0.01, 'q': 0.01, 'w': 0.01},     # 01
@@ -141,7 +141,7 @@ class Experiment05(object):
         ]
         wl_idxs = [7, 11, 16]
         wl_rhos = [0.25, 0.25, 0.5]
-        op_mask = (True, True, True, False)
+        op_mask = (True, True, True, True)
         bpe = 10
         buffer_min = 1 * 1024 * 1024 * 8 # 1 MiB in bits
 
@@ -176,8 +176,8 @@ class Experiment05(object):
             for idx, wl in sessions.iterrows():
                 row = deepcopy(design)
                 row['sample_idx'] = wl['sample_idx']
-                # row['num_queries'] = (design['N'] * 0.1)
-                row['num_queries'] = 100000 
+                row['num_queries'] = (design['N'] * 0.001)
+                # row['num_queries'] = 100000 
                 row['z0_s'] = wl['z0_s']
                 row['z1_s'] = wl['z1_s']
                 row['q_s'] = wl['q_s']
@@ -208,11 +208,17 @@ class Experiment05(object):
                     z1 = int(np.ceil(row['num_queries'] * wl['z1_s']))
                     q = int(np.ceil(row['num_queries'] * wl['q_s']))
                     w = int(np.ceil(row['num_queries'] * wl['w_s']))
+                    self.logger.info(
+                        f'Running {design["N"]:.0e}'
+                        f' : {mode}'
+                        f' : session {(idx + 1):02d} / {sessions.shape[0]}'
+                        f' : ({z0}, {z1}, {q}, {w})'
+                    )
 
                     results = db.run(z0, z1, q, w, prime=10000)
                     named_results = {}
                     for key, val in results.items():
-                        self.logger.info(f'{key} : {val}')
+                    #     self.logger.info(f'{key} : {val}')
                         named_results[f'{mode}_{key}'] = val
                     measured_performance.append(named_results)
 
