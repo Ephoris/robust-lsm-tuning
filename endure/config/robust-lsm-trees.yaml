@@ -1,14 +1,14 @@
 app:
     app_name: "Endure"
-    app_logging_level: "DEBUG"
+    app_logging_level: "INFO"
 
     ROOT_DIR: "endure"
-    DATA_DIR: "/scratchNVM0/ndhuynh/data"
+    DATA_DIR: "/Users/ndhuynh/sandbox/data"
 
     BUILDER_PATH: "../build/db_builder"
     EXECUTION_PATH: "../build/db_runner"
-    DATABASE_PATH: "/scratchNVM0/ndhuynh/tmp"
-    KEY_FILE_PATH: "/scratchNVM0/ndhuynh/data/keys.data"
+    DATABASE_PATH: "/Users/ndhuynh/sandbox/db"
+    KEY_FILE_PATH: "/Users/ndhuynh/sandbox/keys.bin"
 
 lsm_tree_config: 
     N: 100000000
@@ -115,9 +115,9 @@ experiments:
     expt_list:
         # - "experiment_01"
         # - "experiment_02"
-        # - "experiment_03"
+        - "experiment_03"
         # - "experiment_04"
-        - "experiment_05"
+        # - "experiment_05"
 
 experiment_01:
 

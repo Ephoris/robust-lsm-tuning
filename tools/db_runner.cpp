@@ -328,7 +328,7 @@ int run_range_reads(environment env,
 
 
 
-int run_random_inserts(environment env,
+std::pair<int, int> run_random_inserts(environment env,
                        tmpdb::FluidOptions * fluid_opt,
                        tmpdb::FluidLSMCompactor * fluid_compactor,
                        rocksdb::DB * db)
@@ -368,7 +368,10 @@ int run_random_inserts(environment env,
             }
         }
     }
+    auto end_write_time = std::chrono::high_resolution_clock::now();
+    auto write_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_write_time - start_write_time);
 
+    auto remaining_compactions_start = std::chrono::high_resolution_clock::now();
     // We perform one more flush and wait for any last minute remaining compactions due to RocksDB interntally renaming
     // SST files during parallel compactions
     spdlog::debug("Flushing DB...");
@@ -387,14 +390,14 @@ int run_random_inserts(environment env,
         while(fluid_compactor->compactions_left_count > 0);
     }
 
-    auto end_write_time = std::chrono::high_resolution_clock::now();
-    auto write_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_write_time - start_write_time);
+    auto remaining_compactions_end= std::chrono::high_resolution_clock::now();
+    auto remaining_compactions_duration = std::chrono::duration_cast<std::chrono::milliseconds>(remaining_compactions_end - remaining_compactions_start);
     spdlog::info("Write time elapsed : {} ms", write_duration.count());
 
     append_valid_keys(env, new_keys);
     fluid_opt->num_entries += new_keys.size();
 
-    return write_duration.count();
+    return std::pair<int, int>(write_duration.count(), remaining_compactions_duration.count());
 }
 
 
@@ -474,7 +477,8 @@ int main(int argc, char * argv[])
         prime_database(env, db);
     }
 
-    int empty_read_duration = 0, read_duration = 0, range_duration = 0, write_duration = 0;
+    int empty_read_duration = 0, read_duration = 0, range_duration = 0;
+    int write_duration = 0, compact_duration = 0;
     std::vector<std::string> existing_keys;
     
     if ((env.non_empty_reads > 0) || (env.range_reads > 0))
@@ -502,7 +506,9 @@ int main(int argc, char * argv[])
 
     if (env.writes > 0)
     {
-        write_duration = run_random_inserts(env, fluid_opt, fluid_compactor, db);
+        std::pair<int, int> inserts_duration = run_random_inserts(env, fluid_opt, fluid_compactor, db);
+        write_duration = inserts_duration.first;
+        compact_duration = inserts_duration.second;
     }
 
     if (spdlog::get_level() <= spdlog::level::debug)
@@ -532,6 +538,7 @@ int main(int argc, char * argv[])
         stats["rocksdb.flush.write.bytes"]);
     spdlog::info("(block_read_count) : ({})", rocksdb::get_perf_context()->block_read_count);
     spdlog::info("(z0, z1, q, w) : ({}, {}, {}, {})", empty_read_duration, read_duration, range_duration, write_duration);
+    spdlog::info("(remaining_compactions_duration) : ({})", compact_duration);
 
     rocksdb::ColumnFamilyMetaData cf_meta;
     db->GetColumnFamilyMetaData(&cf_meta);

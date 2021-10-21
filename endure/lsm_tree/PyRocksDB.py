@@ -44,6 +44,10 @@ class RocksDB(object):
             r'\[[0-9:.]+\]\[info\] \(z0, z1, q, w\) : '
             r'\((-?\d+), (-?\d+), (-?\d+), (-?\d+)\)'
         )
+        self.compact_time_prog = re.compile(
+            r'\[[0-9:.]+\]\[info\] \(remaining_compactions_duration\) : '
+            r'\((-?\d+)\)'
+        )
         self.runs_per_level_prog = re.compile(
             r'\[[0-9:.]+\]\[info\] runs_per_level : '
             r'(\[[0-9,\s]+\])'
@@ -233,6 +237,7 @@ class RocksDB(object):
         bf_count_results = [int(result) for result in self.bf_count_prog.search(proc_results).groups()]
         compaction_results = [int(result) for result in self.compaction_bytes_prog.search(proc_results).groups()]
         block_read_result = [int(result) for result in self.block_read_prog.search(proc_results).groups()]
+        compact_time_result = [int(result) for result in self.compact_time_prog.search(proc_results).groups()]
         time_results = [int(result) for result in self.time_prog.search(proc_results).groups()]
         runs_per_level = self.runs_per_level_prog.findall(proc_results)[0]
 
@@ -247,6 +252,7 @@ class RocksDB(object):
         results['z1_ms'] = time_results[1]
         results['q_ms'] = time_results[2]
         results['w_ms'] = time_results[3]
+        results['compact_ms'] = compact_time_result[0]
 
         results['filter_neg'] = bf_count_results[0]
         results['filter_pos'] = bf_count_results[1]
