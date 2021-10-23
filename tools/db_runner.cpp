@@ -130,22 +130,26 @@ rocksdb::Status open_db(environment env,
 
     rocksdb_opt.write_buffer_size = fluid_opt->buffer_size; //> "Level 0" or the in memory buffer
     rocksdb_opt.num_levels = env.rocksdb_max_levels;
+
+    // Disable and enable certain settings for closer to vanilla LSM 
     rocksdb_opt.use_direct_reads = true;
     rocksdb_opt.use_direct_io_for_flush_and_compaction = true;
     rocksdb_opt.max_open_files = env.max_open_files;
+    rocksdb_opt.advise_random_on_open = false;
+    rocksdb_opt.random_access_max_buffer_size = 0;
+    rocksdb_opt.avoid_unnecessary_blocking_io = true;
 
-    // Prevents rocksdb from limiting file size
+    // Prevent rocksdb from limiting file size as we manage it ourselves
     rocksdb_opt.target_file_size_base = UINT64_MAX;
 
-    // Note that level 0 in RocksDB is traditionally level 1 in an LSM model. The write buffer is what we normally would
-    // label as level 0. Here we want level 1 to contain T sst files before trigger a compaction. Need to test whether
-    // this mattesrs given our custom compaction listener
+    // Note that level 0 in RocksDB is the first level on disk.
+    // Here we want level 0 to contain T sst files before trigger a compaction. 
     rocksdb_opt.level0_file_num_compaction_trigger = fluid_opt->lower_level_run_max + 1;
 
     // Number of files in level 0 to slow down writes. Since we're prioritizing compactions we will wait for those to
     // finish up first by slowing down the write speed
-    rocksdb_opt.level0_slowdown_writes_trigger = 8 * (fluid_opt->lower_level_run_max + 1);
-    rocksdb_opt.level0_stop_writes_trigger = 10 * (fluid_opt->lower_level_run_max + 1);
+    rocksdb_opt.level0_slowdown_writes_trigger = 2 * (fluid_opt->lower_level_run_max + 1);
+    rocksdb_opt.level0_stop_writes_trigger = 3 * (fluid_opt->lower_level_run_max + 1);
 
     fluid_compactor = new tmpdb::FluidLSMCompactor(*fluid_opt, rocksdb_opt);
     rocksdb_opt.listeners.emplace_back(fluid_compactor);
@@ -337,7 +341,7 @@ std::pair<int, int> run_random_inserts(environment env,
     rocksdb::WriteOptions write_opt;
     rocksdb::Status status;
     std::vector<std::string> new_keys;
-    write_opt.sync = false; //> make every write wait for sync with log (so we see real perf impact of insert)
+    write_opt.sync = false;
     write_opt.low_pri = true; //> every insert is less important than compaction
     write_opt.disableWAL = true; 
     write_opt.no_slowdown = false; //> enabling this will make some insertions fail
