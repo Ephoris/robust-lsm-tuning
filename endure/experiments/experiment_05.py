@@ -117,8 +117,8 @@ class Experiment05(object):
         return pd.concat(sessions, ignore_index=True)
 
     def run(self):
-        # db_sizes = [1e6, 3e6, 1e7, 3e7, 1e8, 2e8]
-        db_sizes = [1e6, 2e6, 4e6, 1e7, 3e7]
+        db_sizes = [1e6, 3e6, 1e7, 3e7, 1e8, 2e8]
+        # db_sizes = [1e6, 2e6, 4e6, 1e7, 3e7]
         expected_wls = [
             {'z0': 0.25, 'z1': 0.25, 'q': 0.25, 'w': 0.25},     # 00
             {'z0': 0.97, 'z1': 0.01, 'q': 0.01, 'w': 0.01},     # 01

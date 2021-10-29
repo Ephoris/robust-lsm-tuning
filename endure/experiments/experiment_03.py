@@ -99,14 +99,14 @@ class Experiment03(object):
         session['session_id'] = 3
         sessions.append(session)
 
-        session = df[df.w_s > 0.8].sample(samples, replace=False, random_state=0)
-        # session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
+        # session = df[df.w_s > 0.8].sample(samples, replace=False, random_state=0)
+        session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
         session['session_id'] = 4
         sessions.append(session)
 
-        # session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
-        replace = len(df[df.dist < 0.2]) < samples
-        session = df[df.dist < 0.2].sample(samples, replace=replace, random_state=0)
+        session = df[df.z0_s + df.z1_s > 0.8].sample(samples, replace=False, random_state=0)
+        # replace = len(df[df.dist < 0.2]) < samples
+        # session = df[df.dist < 0.2].sample(samples, replace=replace, random_state=0)
         session['session_id'] = 5
         sessions.append(session)
 
@@ -134,7 +134,7 @@ class Experiment03(object):
             {'z0': 0.49, 'z1': 0.20, 'q': 0.20, 'w': 0.01},     # 16 - BONUS
         ]
         wl_idxs = list(range(17))
-        op_mask = (True, True, True, True)
+        op_mask = (True, True, True, False)
         bpe = 10
         buffer_min = 1 * 1024 * 1024 * 8 # 1 MiB in bits
 
@@ -160,17 +160,17 @@ class Experiment03(object):
                      'w_s' : wl['w'],
                      'dist' : np.sum(rel_entr(w_hat, w0))})
             sample_wls_dist = pd.DataFrame(sample_wls_dist)
-            sessions[wl_idx] = self.create_sessions(sample_wls_dist, 5)
-            w_hat_avg = sessions[0][['z0_s', 'z1_s', 'q_s', 'w_s']].mean().values
+            sessions[wl_idx] = curr_session = self.create_sessions(sample_wls_dist, 5)
+            w_hat_avg = curr_session[['z0_s', 'z1_s', 'q_s', 'w_s']].mean().values
             rhos.append(np.sum(rel_entr(w_hat_avg, w0)))
- 
+
         self.logger.info('Creating tunings')
         tunings = self.create_tunings(
             wl_idxs, rhos, expected_wls,
             db_size, bpe, buffer_min)
 
         tables = []
-        for wl_idx, design in enumerate(tunings):
+        for wl_idx, design in zip(wl_idxs, tunings):
             row = []
             w0 = [design['z0'], design['z1'], design['q'], design['w']]
             self.logger.info(f'RUNNING DESIGN FOR WORKLOAD {w0}')
@@ -179,7 +179,7 @@ class Experiment03(object):
             for _, wl in sessions[wl_idx].iterrows():
                 row = deepcopy(design)
                 row['sample_idx'] = wl['sample_idx']
-                row['num_queries'] = (design['N'] * 0.001)
+                row['num_queries'] = (design['N'] * 0.01)
                 row['z0_s'] = wl['z0_s']
                 row['z1_s'] = wl['z1_s']
                 row['q_s'] = wl['q_s']

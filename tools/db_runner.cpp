@@ -316,7 +316,6 @@ int run_range_reads(environment env,
         rocksdb::Iterator * it = db->NewIterator(read_opt);
         for (it->Seek(rocksdb::Slice(lower_key)); it->Valid(); it->Next())
         {
-            // status = db->Get(read_opt, it->key(), &value);
             value = it->value().ToString();
             valid_keys++;
         }
