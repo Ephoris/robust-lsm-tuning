@@ -1,6 +1,6 @@
+#!/usr/bin/env python
 """
-This class implements the driver program for the robust-lsm-trees
-project
+This class implements the driver program for the robust-lsm-trees project
 """
 
 import os
